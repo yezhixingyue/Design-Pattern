@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>单例模式</title>
+    <style>
+        * {
+            font-size: 50px;
+            margin: 0;
+        }
+
+        .box {
+            height: 10rem;
+            width: 100vw;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="btn">点击生成</button>
+
+    <!-- <div class="box"></div> -->
+
+    <script>
+        var oBtn = document.getElementsByClassName('btn')[0];
+        oBtn.onclick = function () {
+            var oDiv = singleAlert();
+            oDiv.style.display = 'block'
+        }
+        var singleAlert = (function () {
+            var oDiv = null;
+            return function () {
+                if (oDiv) {
+                    return oDiv
+                }
+                oDiv = document.createElement('div');
+                oDiv.innerText = '单例模式';
+                oDiv.style.display = 'none';
+                document.body.appendChild(oDiv);
+                return oDiv
+            }
+        }())
+
+        // function createAlert(text) {
+        //     oDiv = document.createElement('div');
+        //     oDiv.innerText = text;
+        //     oDiv.style.display = 'none';
+        //     document.body.appendChild(oDiv);
+        //     return oDiv
+        // }
+        //测试单例函数构建函数未能成功
+        // var createIframe = function (func) {
+        //     var result = null;
+        //     console.log(result)
+        //     return function () {
+        //         if (!result) {
+        //             result = func.apply(this,arguments)
+        //         };
+        //         // console.log(result)
+        //         return result
+        //     }
+        // }
+        // oBtn.onclick = function () {
+        //     var oDiv = createIframe(createAlert('单例模式'));
+        //     console.log(oDiv)
+        //     // oDiv.style.display = 'block'
+        // }
+
+
+        // 完美单例模式
+        var Test = (function () {
+            var instance = null;
+            return function (name) {
+                if (instance) {
+                    return instance;
+                }
+                this.name = name;
+                instance = this;
+                // return this; --构造函数默认自带return this,把此对象赋给新创建的对象
+            }
+        })();
+
+        var a = new Test('a');
+        var b = new Test('a');
+        Test.prototype.say = function () {
+            alert(0)
+        }
+        var c = new Test('a');
+        console.log(a == b, b == c);
+    </script>
+</body>
+
+</html>

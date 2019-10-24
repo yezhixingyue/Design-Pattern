@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>代理模式</title>
+    <style>
+        #box {
+            height: 200px;
+            width: 200px;
+            margin: 50px 100px;
+        }
+        #box img {
+            height: 100%;
+            width: 100%;
+        }
+        #show {
+            height: 100px;
+            width: 100px;
+            border: 1px solid #000;
+        }
+        span{
+            font-size: 13px;
+            color: red;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="box"></div>
+    <div id="show">网络请求模拟</div>
+    <div id="btns">
+        <button type="bg">add greenBg</button>
+        <button type="cl">add blueColor</button>
+        <button type="fs">add fontSize</button>
+        <button type="fw">add fontWeight</button>
+        <button type="op">add opacity</button>
+    </div>
+    <br>
+
+    <div class="inp-box">
+        账号：<input type="text" name="account" id="username"> <span id="u-info"></span><br>
+        密码：<input type="password" name="psword" id="password"><span id="pw-info"></span>
+        <br>
+        <button type="submit" class="btn">提交</button>
+    </div>
+
+
+    <script>
+        //代理模式三
+        var oBtn = document.getElementsByClassName('btn')[0];
+        oBtn.onclick = function () {            //-----------原始方式
+            var flag = true;    
+            var uShow = '',
+                pwShow = '';
+            if(!username.value){
+                uShow = '用户名不能为空';
+                flag = false
+            } else if (username.value.length > 4) {
+                uShow = '用户名长度不能大于4位';
+                flag = false
+            } 
+            if(!password.value){
+                pwShow = '密码不能为空';
+                flag = false
+            } else if (password.value.length <= 6) {
+                pwShow = '密码长度必须大于6';
+                flag = false
+            }
+            document.getElementById('u-info').innerText = uShow;
+            document.getElementById('pw-info').innerText = pwShow;
+            if(flag){
+                console.log('通过校验，可以提交')
+            }
+        }
+
+        function Validator () {
+            this.cache = [];
+            this.warnDom = []
+        }
+        Validator.prototype.strategies = {
+            isNonEmpty:function (value,errorMsg) {
+                if (value == '') {
+                    return errorMsg;
+                }
+                return true
+            },
+            maxLength:function (value,length,errorMsg) {
+                if(value != '' && value.length > length) {
+                    return errorMsg
+                }
+                return true 
+            },
+            minLength:function (value,length,errorMsg) {
+                if(value != '' && value.length < length ) {
+                    return errorMsg
+                }
+                return true
+            }
+        }
+        Validator.prototype.add = function (dom,showDom,strategyArr) {
+            var self = this;
+            this.warnDom.push(showDom);
+            strategyArr.forEach(function (ele,index) {
+                self.cache.push(function() {
+                    
+                })
+            })
+        }
+
+
+
+
+
+
+
+
+
+        //代理模式详解一：图片加载模式
+        //预加载：首先在计算机性能较好的时候，先发送一次。  之后再用就是取缓存了
+        //懒加载：监控真正要展示的图片内容  是否有被加载成功
+        //提高用户体验的同时 减少对性能的伤害
+        //建立图片普通方式
+        function MyImage(_id) {
+            var oImg = document.createElement('img');
+            this.setSrc = function (_src) {
+                oImg.src = _src;
+            }
+            document.getElementById(_id).appendChild(oImg)
+        }
+        //直接加载图片方式：一次性完成新建 + 设置src
+        // new MyImage('box').setSrc('https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=2616736980,3933048081&fm=26&gp=0.jpg')
+
+        //使用代理加载图片方式：分步做 -- 先放一张图片进行占位，等真正需要的图片下载下来完成后再替换为真正需要的图片，这个就是代理模式所帮助做的整个东西
+        var ProxyImage = (function () {
+            var oImg = new Image();
+            var oMyImage = new MyImage('box'); //第一步先建立img标签并插入到页面中
+            oImg.onload = function () { //第三步监控图片加载状态
+                setTimeout(function () { //使用定时器来模拟网络加载延迟
+                    oMyImage.setSrc(oImg.src) //第四步替换src
+                }, 2000)
+            }
+            return function (occupySrc, src) { //返回一个函数
+                oImg.src = src; //为另外一个图片设置模板src地址，监控其下载状态，当其onload时替换到所需位置
+                oMyImage.setSrc(occupySrc) //先为图片位置放置一个占位图片链接(第二步)
+            }
+        }())
+        new ProxyImage('https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=2616736980,3933048081&fm=26&gp=0.jpg',
+            'http://b.hiphotos.baidu.com/image/h%3D300/sign=ad628627aacc7cd9e52d32d909032104/32fa828ba61ea8d3fcd2e9ce9e0a304e241f5803.jpg'
+        )
+
+
+        //代理模式示例二：模拟网络请求，在 点击 -- 发送请求 中间添加代理模式，使请求积攒结束后再进行发送 减少服务器访问压力及提高用户体验
+        var oBtns = document.getElementById('btns').getElementsByTagName('button');
+        var oShow = document.getElementById('show');
+
+        function ProxyRequest(func) {
+            var cache = [];
+            var timer = null;
+            return function () {
+                cache.push(this.getAttribute('type'))
+                clearTimeout(timer);
+                timer = setTimeout(function () {
+                    func(oShow, cache)
+                    cache = [];
+                }, 2000)
+            }
+
+        }
+
+        var realChangeStyle = new ProxyRequest(changeStyle);
+        //这步不可或缺，不然在for循环点击事件中直接等于该函数，因为会ProxyRequest生成return回5个不一样的函数，其闭包生成的数组也会生成5个不关联的数组
+
+
+
+        for (var i = 0; i < oBtns.length; i++) {
+            oBtns[i].onclick = realChangeStyle
+        }
+
+        // function changeStyle() {
+        //     var type = this.getAttribute('type');
+        //     switch (type) {
+        //         case 'bg':
+        //             oShow.style.backgroundColor = 'green';
+        //             break;
+        //         case 'fs':
+        //             oShow.style.fontSize = '32px';
+        //             break;
+        //         case 'cl':
+        //             oShow.style.color = '#ff0';
+        //             break;
+        //         case 'fw':
+        //             oShow.style.fontWeight = '700';
+        //             break;
+        //         case 'op':
+        //             oShow.style.opacity = '0.5'
+        //     }
+        // }
+
+        function changeStyle(dom, typeArr) {
+            var styles = {
+                bg: ['backgroundColor', 'green'],
+                fs: ['fontSize', '32px'],
+                cl: ['color', '#ff0'],
+                fw: ['fontWeight', 700],
+                op: ['opacity', 0.5]
+            }
+            if (typeArr.constructor == Array) {
+                typeArr.forEach(function (ele, index) {
+                    dom.style[styles[ele][0]] = styles[ele][1]
+                })
+            } else {
+                dom.style[styles[typeArr][0]] = styles[typeArr][1]
+            }
+
+        }
+    </script>
+
+</body>
+
+</html>
