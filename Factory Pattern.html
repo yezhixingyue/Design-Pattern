@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>工厂模式</title>
+</head>
+
+<body>
+
+    <script>
+        // //定义一个飞机游戏中的飞机
+        // function SmallPlane() {
+
+        //     this.height = 100;
+        //     this.width = 100;
+        //     this.blood = 100;
+        //     this.name = 'smallPlane';
+        //     this.touch = function () {
+        //         this.blood -= 100;
+        //         if (this.blood == 0) {
+        //             console.log('die')
+        //         }
+        //     }
+        // }
+
+        // function BigPlane() {
+        //     this.width = 150;
+        //     this.height = 200;
+        //     this.blood = 200;
+        //     this.name = 'bigPlane';
+        //     this.touch = function () {
+        //         this.blood -= 50;
+        //         if (this.blood == 0) {
+        //             console.log('die');
+        //         }
+        //     }
+        // }
+
+        // function AttackPlane() {
+        //     this.width = 125;
+        //     this.height = 100;
+        //     this.blood = 100;
+        //     this.name = 'AttackPlanea'
+        //     this.touch = function () {};
+        //     this.attack = function () {
+        //         console.log('bultt');
+        //     }
+        // }
+
+        // //工厂模式
+        // function PlaneFactory(type) {
+        //     var newPlane = null;
+        //     switch (type) {
+        //         case 'SmallPlane':
+        //             newPlane = new SmallPlane();
+        //             break;
+        //         case 'BigPlane':
+        //             newPlane = new BigPlane();
+        //             break;
+        //         case 'AttackPlane':
+        //             newPlane = new AttackPlane();
+        //             break
+        //     }
+        //     newPlane.die = function () {
+        //         console.log('boom')
+        //     }
+        //     return newPlane
+        // }
+
+        //工厂方法模式
+        function PlaneFactory() {
+            this.decorate_list = []
+        }
+
+        //真正定义子类工厂
+        PlaneFactory.prototype.SmallPlane = function (x, y) {
+            this.x = x;
+            this.y = y;
+            this.width = 100;
+            this.height = 100;
+            this.blood = 100;
+            this.name = 'SmallPlane'
+        }
+        PlaneFactory.prototype.BigPlane = function (x, y) {
+            this.x = x;
+            this.y = y;
+            this.width = 150;
+            this.height = 200;
+            this.blood = 200;
+            this.name = 'BigPlane'
+        }
+        PlaneFactory.prototype.AttackPlane = function (x, y) {
+            this.x = x;
+            this.y = y;
+            this.width = 100;
+            this.height = 125;
+            this.blood = 100;
+            this.name = 'AttackPlane';
+            this.attack = function () {
+                console.log('biu~ biu!~ biu~')
+            }
+        }
+        //创建对象的接口
+        PlaneFactory.create = function (type) {
+            //判断一下是否存在该类型的子类工厂
+            if (PlaneFactory.prototype[type] == 'undefined') {
+                throw 'not this constructor';
+            }
+            //继承
+            if (PlaneFactory.prototype[type].prototype.__proto__ !== PlaneFactory.prototype) {
+                PlaneFactory.prototype[type].prototype = new PlaneFactory();
+            }
+            var arg = [].slice.call(arguments, 1);
+            var newPlane = new PlaneFactory.prototype[type](...arg);
+            return newPlane
+        }
+        //子类工厂都可以使用的公共方法
+        PlaneFactory.prototype.touch = function () {
+            this.blood -= 50;
+            if (this.blood == 0) {
+                this.die()
+            }
+        }
+        PlaneFactory.prototype.die = function () {
+            alert('boom')
+        }
+//装饰者模式
+//集合所有装饰方法
+PlaneFactory.prototype.decorators = {
+    eatOneLife:function(obj){
+        obj.blood += 100
+    },
+    eatTwoLife:function (obj) {
+        obj.blood += 200
+    },
+    eatShrinkLife:function(obj){
+        obj.blood -= 50
+    }
+}
+//搜集对某对象的装饰描述
+PlaneFactory.prototype.decorate = function (decorator) {
+    this.decorate_list.push(decorator)
+}
+//让装饰方法作用在该对象的身上
+PlaneFactory.prototype.update = function () {
+    for (var i = 0;i < this.decorate_list.length; i++) {
+        this.decorators[this.decorate_list[i]] && this.decorators[ this.decorate_list[i] ](this)
+    }
+}
+PlaneFactory.prototype.empty = function () {
+    console.log(this.decorate_list,0)
+    this.decorate_list = []
+    console.log(this.decorate_list,1)
+}
+PlaneFactory.prototype.remove = function(type) {
+    //eatOneLife
+    this.decorate_list = this.decorate_list.filter(function(eleType){
+        return !(eleType == type)
+    })
+}
+
+var mini = PlaneFactory.create('SmallPlane',10,20)
+var big = PlaneFactory.create('BigPlane',20,30)
+var atta = PlaneFactory.create('AttackPlane',30,40)
+
+        function Event(){
+
+        }
+    </script>
+
+</body>
+
+</html>

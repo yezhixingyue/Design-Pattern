@@ -12,16 +12,19 @@
             width: 200px;
             margin: 50px 100px;
         }
+
         #box img {
             height: 100%;
             width: 100%;
         }
+
         #show {
             height: 100px;
             width: 100px;
             border: 1px solid #000;
         }
-        span{
+
+        span {
             font-size: 13px;
             color: red;
             margin-left: 10px;
@@ -42,82 +45,103 @@
     <br>
 
     <div class="inp-box">
-        账号：<input type="text" name="account" id="username"> <span id="u-info"></span><br>
-        密码：<input type="password" name="psword" id="password"><span id="pw-info"></span>
+        账号：<input type="text" name="account" id="username"> <span id="uInfo"></span><br>
+        密码：<input type="password" name="psword" id="password"><span id="pwInfo"></span>
+        <br>
+        邮箱：<input type="text" name="em" id="emDom"><span id="emInfo"></span>
         <br>
         <button type="submit" class="btn">提交</button>
     </div>
 
-
+    <script src="./validator.js"></script>
     <script>
         //代理模式三
         var oBtn = document.getElementsByClassName('btn')[0];
-        oBtn.onclick = function () {            //-----------原始方式
-            var flag = true;    
-            var uShow = '',
-                pwShow = '';
-            if(!username.value){
-                uShow = '用户名不能为空';
-                flag = false
-            } else if (username.value.length > 4) {
-                uShow = '用户名长度不能大于4位';
-                flag = false
-            } 
-            if(!password.value){
-                pwShow = '密码不能为空';
-                flag = false
-            } else if (password.value.length <= 6) {
-                pwShow = '密码长度必须大于6';
-                flag = false
-            }
-            document.getElementById('u-info').innerText = uShow;
-            document.getElementById('pw-info').innerText = pwShow;
-            if(flag){
-                console.log('通过校验，可以提交')
-            }
+        // oBtn.onclick = function () {            //-----------原始方式
+        //     var flag = true;    
+        //     var uShow = '',
+        //         pwShow = '';
+        //     if(!username.value){
+        //         uShow = '用户名不能为空';
+        //         flag = false
+        //     } else if (username.value.length > 4) {
+        //         uShow = '用户名长度不能大于4位';
+        //         flag = false
+        //     } 
+        //     if(!password.value){
+        //         pwShow = '密码不能为空';
+        //         flag = false
+        //     } else if (password.value.length <= 6) {
+        //         pwShow = '密码长度必须大于6';
+        //         flag = false
+        //     }
+        //     document.getElementById('u-info').innerText = uShow;
+        //     document.getElementById('pw-info').innerText = pwShow;
+        //     if(flag){
+        //         console.log('通过校验，可以提交')
+        //     }
+        // }
+
+        oBtn.onclick = function () {
+            new ProxyRequest1()
         }
 
-        function Validator () {
-            this.cache = [];
-            this.warnDom = []
+        function Request() {
+            console.log('send')
         }
-        Validator.prototype.strategies = {
-            isNonEmpty:function (value,errorMsg) {
-                if (value == '') {
-                    return errorMsg;
-                }
-                return true
-            },
-            maxLength:function (value,length,errorMsg) {
-                if(value != '' && value.length > length) {
+
+        // add 添加校验规则 
+        // (dom, showDom,[{strategy: 'isNonEmpty', errorMsg: '用户名不为空'}, {strategy: 'maxLength:4'}, errorMsg: '用户名长度不能超过4']);
+
+        // start 开始校验并返回真正的校验结果 
+
+        // extend 可以扩展 算法 {isMail: function () {}}      
+        var validator = new Validator();
+        validator.extend({
+            isEmail: function (value, errorMsg) {
+                if (value != '' && value.indexOf('@') == -1) {
                     return errorMsg
                 }
-                return true 
+                return true;
             },
-            minLength:function (value,length,errorMsg) {
-                if(value != '' && value.length < length ) {
+            isPhone: function (value, errorMsg) {
+                if (value != '' && value.length != 11) {
                     return errorMsg
                 }
-                return true
+                return true;
             }
-        }
-        Validator.prototype.add = function (dom,showDom,strategyArr) {
-            var self = this;
-            this.warnDom.push(showDom);
-            strategyArr.forEach(function (ele,index) {
-                self.cache.push(function() {
-                    
-                })
-            })
-        }
+        })
 
-
-
-
-
-
-
-
+        var ProxyRequest1 = (function () {
+            // 1.校验内容dom 2.错误信息显示dom 3.检验规则
+            validator.add(username, uInfo, [{
+                strategy: 'isNonEmpty',
+                errorMsg: '用户名不为空'
+            }, {
+                strategy: 'maxLength:4',
+                errorMsg: '用户名长度不能超过4'
+            }]);
+            validator.add(password, pwInfo, [{
+                strategy: 'isNonEmpty',
+                errorMsg: '密码不能为空'
+            }, {
+                strategy: 'minLength:6',
+                errorMsg: '密码长度不能小于6'
+            }]);
+            validator.add(emDom, emInfo, [{
+                strategy: 'isNonEmpty',
+                errorMsg: '邮箱不能为空'
+            }, {
+                strategy: 'isEmail',
+                errorMsg: '邮箱格式不正确'
+            }]);
+            return function () {
+                console.log(1)
+                if (validator.start() == true) {
+                    Request();
+                }
+            }
+        })();
 
         //代理模式详解一：图片加载模式
         //预加载：首先在计算机性能较好的时候，先发送一次。  之后再用就是取缓存了
