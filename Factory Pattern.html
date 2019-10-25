@@ -75,6 +75,9 @@
             this.decorate_list = []
         }
 
+        PlaneFactory.prototype = new Event();
+
+
         //真正定义子类工厂
         PlaneFactory.prototype.SmallPlane = function (x, y) {
             this.x = x;
@@ -127,48 +130,112 @@
         PlaneFactory.prototype.die = function () {
             alert('boom')
         }
-//装饰者模式
-//集合所有装饰方法
-PlaneFactory.prototype.decorators = {
-    eatOneLife:function(obj){
-        obj.blood += 100
-    },
-    eatTwoLife:function (obj) {
-        obj.blood += 200
-    },
-    eatShrinkLife:function(obj){
-        obj.blood -= 50
-    }
-}
-//搜集对某对象的装饰描述
-PlaneFactory.prototype.decorate = function (decorator) {
-    this.decorate_list.push(decorator)
-}
-//让装饰方法作用在该对象的身上
-PlaneFactory.prototype.update = function () {
-    for (var i = 0;i < this.decorate_list.length; i++) {
-        this.decorators[this.decorate_list[i]] && this.decorators[ this.decorate_list[i] ](this)
-    }
-}
-PlaneFactory.prototype.empty = function () {
-    console.log(this.decorate_list,0)
-    this.decorate_list = []
-    console.log(this.decorate_list,1)
-}
-PlaneFactory.prototype.remove = function(type) {
-    //eatOneLife
-    this.decorate_list = this.decorate_list.filter(function(eleType){
-        return !(eleType == type)
-    })
-}
+        //装饰者模式
+        //集合所有装饰方法
+        PlaneFactory.prototype.decorators = {
+            eatOneLife: function (obj) {
+                obj.blood += 100
+            },
+            eatTwoLife: function (obj) {
+                obj.blood += 200
+            },
+            eatShrinkLife: function (obj) {
+                obj.blood -= 50
+            }
+        }
+        //搜集对某对象的装饰描述
+        PlaneFactory.prototype.decorate = function (decorator) {
+            this.decorate_list.push(decorator)
+        }
+        //让装饰方法作用在该对象的身上
+        PlaneFactory.prototype.update = function () {
+            for (var i = 0; i < this.decorate_list.length; i++) {
+                this.decorators[this.decorate_list[i]] && this.decorators[this.decorate_list[i]](this)
+            }
+        }
+        PlaneFactory.prototype.empty = function () {
+            console.log(this.decorate_list, 0)
+            this.decorate_list = []
+            console.log(this.decorate_list, 1)
+        }
+        PlaneFactory.prototype.remove = function (type) {
+            //eatOneLife
+            this.decorate_list = this.decorate_list.filter(function (eleType) {
+                return !(eleType == type)
+            })
+        }
 
-var mini = PlaneFactory.create('SmallPlane',10,20)
-var big = PlaneFactory.create('BigPlane',20,30)
-var atta = PlaneFactory.create('AttackPlane',30,40)
 
-        function Event(){
+
+        //观察者模式  Event
+        // 1. Event  on emmit remove  once 等方法
+        // 2. 有助于了解 观察者模式
+        // 3. node中大量引用使用该方法
+
+        function Event() {
+            // 存储 不同事件类型对应不同的处理函数
+            this.cache = {}
+        }
+        Event.prototype.on = function (type, handle) {
+            if (!this.cache[type]) {
+                this.cache[type] = [handle]
+            } else {
+                this.cache[type].push(handle)
+            }
+        }
+
+        Event.prototype.emmit = function () {
+            var type = arguments[0];
+            var arg = [].slice.call(arguments, 1)
+            if (!this.cache[type]) {
+                throw 'no this type'
+            }
+            for (var i = 0; i < this.cache[type].length; i++) {
+                this.cache[type][i].apply(this, arg)
+            }
+        }
+
+        Event.prototype.empty = function (type) {
+            this.cache[type] = []
+        }
+        Event.prototype.remove = function (type, handle) {
+            this.cache[type] = this.cache[type].filter(function (ele) {
+                return !(ele == handle)
+            })
+        }
+        Event.prototype.once = function () {
 
         }
+
+        var oE = new Event();
+
+        function deal1(time) {
+            console.log('overtime1:' + time);
+        }
+        oE.on('over', deal1);
+
+        function deal2(time) {
+            console.log('overtime2:' + time);
+        }
+        oE.on('over', deal2);
+        oE.emmit('over', '2018-9-25');
+        oE.remove('over', deal2);
+        oE.emmit('over', 'second-2018-9-25');
+
+
+
+
+        var mini = PlaneFactory.create('SmallPlane', 10, 20)
+        var big = PlaneFactory.create('BigPlane', 20, 30)
+        var atta = PlaneFactory.create('AttackPlane', 30, 40)
+
+
+        mini.on('hi', function () {
+            alert('hi 你好')
+        })
+        mini.on('over', function () {
+            this.die()
+        })
     </script>
 
 </body>
